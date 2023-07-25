@@ -4,12 +4,18 @@ import { getCitiesByKeyword } from "../api/citiesData";
 const useCitySearch = () => {
   const [searchTerms, setSearchTerms] = useState<string[]>([]);
   const [searchResults, setSearchResults] = useState<string[][]>([]);
+  const [showSearchResults, setShowSearchResults] = useState<boolean[]>([]);
 
   const addSearchTerm = (index: number, term: string) => {
     setSearchTerms((prevTerms) => {
       const newTerms = [...prevTerms];
       newTerms[index] = term;
       return newTerms;
+    });
+    setShowSearchResults((prevShowResults) => {
+      const newShowResults = [...prevShowResults];
+      newShowResults[index] = true; // Set show search results for the added term
+      return newShowResults;
     });
   };
 
@@ -38,7 +44,13 @@ const useCitySearch = () => {
     searchTerms.forEach((_, index) => searchCities(index));
   }, [searchTerms]);
 
-  return { searchTerms, addSearchTerm, searchResults };
+  return {
+    searchTerms,
+    addSearchTerm,
+    searchResults,
+    showSearchResults,
+    setShowSearchResults,
+  };
 };
 
 export default useCitySearch;

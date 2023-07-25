@@ -1,15 +1,23 @@
 import React, { useState } from "react";
-import FormLabel from "./FormLabel";
+import FormLabel from "./UI/FormLabel";
 import useCitySearch from "../hooks/useCitySearch";
+import SquareButton from "./UI/SquareButton";
+import InputDropdown from "./UI/InputDropdown";
 
 const Home: React.FC = () => {
   const [cityOfDestinationFields, setCityOfDestinationFields] = useState<
     string[]
   >([""]);
   const [dateOfTrip, setDateOfTrip] = useState<string>("");
-  const [numberOfPassengers, setNumberOfPassengers] = useState<number>(1);
+  const [numberOfPassengers, setNumberOfPassengers] = useState<number>(0);
 
-  const { searchTerms, addSearchTerm, searchResults } = useCitySearch();
+  const {
+    searchTerms,
+    addSearchTerm,
+    searchResults,
+    showSearchResults,
+    setShowSearchResults,
+  } = useCitySearch();
 
   const handleAddCityOfDestinationField = () => {
     setCityOfDestinationFields((prevFields) => [...prevFields, ""]);
@@ -21,6 +29,14 @@ const Home: React.FC = () => {
     );
   };
 
+  const handleDecreasePassengers = () => {
+    setNumberOfPassengers((prevPassengers) => Math.max(prevPassengers - 1, 0));
+  };
+
+  const handleIncreasePassengers = () => {
+    setNumberOfPassengers((prevPassengers) => prevPassengers + 1);
+  };
+
   const handleSubmit = () => {
     // Implement the form submission logic here
   };
@@ -30,11 +46,20 @@ const Home: React.FC = () => {
     searchTerms[0] !== "" &&
     cityOfDestinationFields.every((field) => field !== "") &&
     new Date(dateOfTrip) > new Date() &&
-    numberOfPassengers > 0;
+    numberOfPassengers >= 0; // Allow zero or more passengers
+
+  const handleSelectCity = (index: number, city: string) => {
+    addSearchTerm(index, city);
+    setShowSearchResults((prevShowResults) => {
+      const newShowResults = [...prevShowResults];
+      newShowResults[index] = false; // Hide the search results when a city is selected
+      return newShowResults;
+    });
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div className="flex items-center justify-center h-screen">
+      <div className="max-w-sm w-full sm:max-w-md bg-white p-8 rounded-lg shadow-md">
         <form>
           {/* City of Origin */}
           <div className="mb-4">
@@ -48,18 +73,15 @@ const Home: React.FC = () => {
               className="mt-1 p-2 border border-gray-300 rounded-lg w-full"
             />
 
-            {searchResults[0] && searchResults[0].length > 0 && (
-              <ul className="border border-main-light rounded-lg p-2 mt-2">
-                {searchResults[0].map((city) => (
-                  <li
-                    key={city}
-                    className="p-2 cursor-pointer hover:bg-main-light rounded-lg"
-                  >
-                    {city}
-                  </li>
-                ))}
-              </ul>
-            )}
+            {showSearchResults[0] &&
+              searchResults[0] &&
+              searchResults[0].length > 0 && (
+                <InputDropdown
+                  liItems={searchResults[0]}
+                  onClick={handleSelectCity}
+                  index={0}
+                />
+              )}
           </div>
 
           {/* City of Destination Fields */}
@@ -78,18 +100,14 @@ const Home: React.FC = () => {
                 className="mt-1 p-2 border border-gray-300 rounded-lg w-full"
               />
 
-              {searchResults[index + 1] &&
+              {showSearchResults[index + 1] &&
+                searchResults[index + 1] &&
                 searchResults[index + 1].length > 0 && (
-                  <ul className="border border-main-light rounded-lg p-2 mt-2">
-                    {searchResults[index + 1].map((city) => (
-                      <li
-                        key={city}
-                        className="p-2 cursor-pointer hover:bg-main-light rounded-lg"
-                      >
-                        {city}
-                      </li>
-                    ))}
-                  </ul>
+                  <InputDropdown
+                    liItems={searchResults[index + 1]}
+                    onClick={handleSelectCity}
+                    index={index + 1}
+                  />
                 )}
 
               {index > 0 && (
@@ -105,13 +123,12 @@ const Home: React.FC = () => {
           ))}
 
           {/* Add Destination Button */}
-          <button
-            type="button"
+          <div
             onClick={handleAddCityOfDestinationField}
-            className="px-4 py-2 rounded-lg bg-blue-500 text-white"
+            className="text-main-dark cursor-pointer mb-4"
           >
             Add Destination
-          </button>
+          </div>
 
           {/* Date of the Trip */}
           <div className="mb-4">
@@ -130,18 +147,13 @@ const Home: React.FC = () => {
 
           {/* Number of Passengers */}
           <div className="mb-4">
-            <FormLabel
-              htmlFor="numberOfPassengers"
-              label="Number of Passengers"
-            />
+            <FormLabel label="Passengers" />
 
-            <input
-              type="number"
-              id="numberOfPassengers"
-              value={numberOfPassengers}
-              onChange={(e) => setNumberOfPassengers(parseInt(e.target.value))}
-              className="mt-1 p-2 border border-gray-300 rounded-lg w-full"
-            />
+            <div className="flex items-center gap-4 border border-gray-300 rounded-lg p-2 mt-1 max-w-min">
+              <SquareButton onClick={handleDecreasePassengers}>-</SquareButton>
+              {numberOfPassengers}
+              <SquareButton onClick={handleIncreasePassengers}>+</SquareButton>
+            </div>
           </div>
 
           {/* Submit Button */}
